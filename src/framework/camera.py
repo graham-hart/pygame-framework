@@ -91,3 +91,8 @@ class Camera:
             return *self.unproject(rect[0], rect[1]), *self.unproject_dist(rect[2], rect[3])
         else:
             raise TypeError("Argument must be rect-style object.")
+
+    def set_scale(self, scale):
+        self.scale = scale
+        self.v_width = self.screen_width / scale[0]
+        self.v_height = self.screen_width / scale[1]
