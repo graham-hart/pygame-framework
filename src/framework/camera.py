@@ -1,6 +1,6 @@
 import pygame as pg
 
-import utils
+from framework import utils
 
 
 class Camera:
@@ -9,12 +9,22 @@ class Camera:
         self.v_width, self.v_height = viewport_size
         self.x = 0
         self.y = 0
-        self.scale = [self.screen_width / self.v_width, self.screen_height / self.v_height]
+        self.scale = [
+            self.screen_width / self.v_width,
+            self.screen_height / self.v_height,
+        ]
 
     def translate(self, x, y):
         if utils.all_num_in_list((x, y)):
-            self.x += x
-            self.y += y
+            self.x -= x
+            self.y -= y
+        else:
+            raise TypeError("Argument must be either int or float")
+
+    def set_pos(self, x, y):
+        if utils.all_num_in_list((x, y)):
+            self.x = x
+            self.y = y
         else:
             raise TypeError("Argument must be either int or float")
 
@@ -26,7 +36,10 @@ class Camera:
             raise TypeError("Argument must be either int or float")
 
     def update_scale(self):
-        self.scale = [self.screen_width / self.v_width, self.screen_height / self.v_height]
+        self.scale = [
+            self.screen_width / self.v_width,
+            self.screen_height / self.v_height,
+        ]
 
     def resize_window(self, w, h):
         if utils.all_num_in_list((w, h)):
@@ -51,7 +64,7 @@ class Camera:
     # Take in world coords and return screen coords
     def project(self, x, y):
         if utils.all_num_in_list((x, y)):
-            return (x-self.x) * self.scale[0], (y - self.y) * self.scale[1]
+            return (x - self.x) * self.scale[0], (y - self.y) * self.scale[1]
         else:
             raise TypeError("Argument must be either int or float.")
 
@@ -71,10 +84,18 @@ class Camera:
 
     def project_rect(self, rect):
         if type(rect) == pg.Rect:
-            return pg.Rect(self.project(rect.x, rect.y), self.project_dist(rect.width, rect.height))
-        elif type(rect) == tuple and len(rect) == 2 and utils.type_all_in_list(rect, tuple) and utils.all_num_in_list(
-                list(rect[0]) + list(rect[1])):
-            return self.project(rect[0][0], rect[0][1]), self.project_dist(rect[1][0], rect[1][1])
+            return pg.Rect(
+                self.project(rect.x, rect.y), self.project_dist(rect.width, rect.height)
+            )
+        elif (
+            type(rect) == tuple
+            and len(rect) == 2
+            and utils.type_all_in_list(rect, tuple)
+            and utils.all_num_in_list(list(rect[0]) + list(rect[1]))
+        ):
+            return self.project(rect[0][0], rect[0][1]), self.project_dist(
+                rect[1][0], rect[1][1]
+            )
         elif type(rect) == tuple and len(rect) == 4 and utils.all_num_in_list(rect):
             return *self.project(rect[0], rect[1]), *self.project_dist(rect[2], rect[3])
         else:
@@ -82,13 +103,26 @@ class Camera:
 
     def unproject_rect(self, rect):
         if type(rect) == pg.Rect:
-            return pg.Rect(self.unproject(rect.x, rect.y), self.unproject_dist(rect.width, rect.height))
-        elif type(rect) == tuple and len(rect) == 2 and utils.type_all_in_list(rect, tuple) and utils.type_all_in_list(rect[0],
-                                                                                                                       int) and utils.type_all_in_list(
-            rect[1], int):
-            return self.unproject(rect[0][0], rect[0][1]), self.unproject_dist(rect[1][0], rect[1][1])
-        elif type(rect) == tuple and len(rect) == 4 and utils.type_all_in_list(rect, int):
-            return *self.unproject(rect[0], rect[1]), *self.unproject_dist(rect[2], rect[3])
+            return pg.Rect(
+                self.unproject(rect.x, rect.y),
+                self.unproject_dist(rect.width, rect.height),
+            )
+        elif (
+            type(rect) == tuple
+            and len(rect) == 2
+            and utils.type_all_in_list(rect, tuple)
+            and utils.type_all_in_list(rect[0], int)
+            and utils.type_all_in_list(rect[1], int)
+        ):
+            return self.unproject(rect[0][0], rect[0][1]), self.unproject_dist(
+                rect[1][0], rect[1][1]
+            )
+        elif (
+            type(rect) == tuple and len(rect) == 4 and utils.type_all_in_list(rect, int)
+        ):
+            return *self.unproject(rect[0], rect[1]), *self.unproject_dist(
+                rect[2], rect[3]
+            )
         else:
             raise TypeError("Argument must be rect-style object.")
 
@@ -96,3 +130,9 @@ class Camera:
         self.scale = scale
         self.v_width = self.screen_width / scale[0]
         self.v_height = self.screen_width / scale[1]
+
+    @property
+    def bounds(self):
+        return pg.Vector2(self.x, self.y), pg.Vector2(
+            self.x + self.v_width, self.y + self.v_height
+        )
