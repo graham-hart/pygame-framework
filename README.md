@@ -5,9 +5,10 @@ This is a game framework for pygame. Currently, it's feature list is very limite
 Feature List
 -
 - Tilemap system
-  - Divides the world into chunks 
+  - Divides the world into chunks
   - Stores tiles as strings (the names of the tiles)
 - Camera
   - Projects world coordinates to pixel coordinates
-  - Scaling & Translation 
-  - Project & Unproject coordinates, distances, and pygame Rects 
+  - Scaling & Translation
+  - Project & Unproject coordinates, distances, and pygame Rects
+  - Graph coordinates - 0,0 center, +y goes up and +self goes right

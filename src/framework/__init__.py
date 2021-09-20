@@ -1,4 +1,3 @@
-from . import utils
-from . import camera
-from . import map_io
-from . import tilemap
+from . import utils, tilemap
+from .camera import *
+from .color import *

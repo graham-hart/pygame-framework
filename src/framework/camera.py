@@ -1,138 +1,109 @@
-import pygame as pg
+from typing import Union
 
-from framework import utils
+import pygame
 
 
 class Camera:
+    # TODO: 0,0 should be at center
     def __init__(self, screen_size, viewport_size):
-        self.screen_width, self.screen_height = screen_size
-        self.v_width, self.v_height = viewport_size
-        self.x = 0
-        self.y = 0
-        self.scale = [
-            self.screen_width / self.v_width,
-            self.screen_height / self.v_height,
-        ]
+        self.v_size = pygame.Vector2(viewport_size)
+        self.sc_size = pygame.Vector2(screen_size)
+        self.pos = pygame.Vector2(0, 0)
+        self.scale = pygame.Vector2()
+        self._update_scale()
 
-    def translate(self, x, y):
-        if utils.all_num_in_list((x, y)):
-            self.x -= x
-            self.y -= y
+    def project_x(self, x: Union[int, float]):
+        return (x - self.pos.x + self.center.x) * self.scale.x
+
+    def project_y(self, y: Union[int, float]):
+        return (y - self.pos.y + self.center.y) * self.scale.y
+
+    def unproject_x(self, x: Union[int, float]):
+        return x / self.scale.x + self.pos.x - self.center.x
+
+    def unproject_y(self, y: Union[int, float]):
+        return y / self.scale.y + self.pos.y - self.center.y
+
+    def project_x_dist(self, x: Union[int, float]):
+        return x * self.scale.x
+
+    def project_y_dist(self, y: Union[int, float]):
+        return y * self.scale.y
+
+    def unproject_x_dist(self, x: Union[int, float]):
+        return x / self.scale.x
+
+    def unproject_y_dist(self, y: Union[int, float]):
+        return y / self.scale.y
+
+    def project(self, pos: Union[tuple[int, int], tuple[float, float]]) -> tuple:
+        return self.project_x(pos[0]), self.project_y(pos[1])
+
+    def unproject(self, pos: Union[tuple[int, int], tuple[float, float]]) -> tuple:
+        return self.unproject_x(pos[0]), self.unproject_y(pos[1])
+
+    def project_dist(self, size: Union[tuple[int, int], tuple[float, float], pygame.Vector2]) -> tuple:
+        return self.project_x_dist(size[0]), self.project_y_dist(size[1])
+
+    def unproject_dist(self, size: Union[tuple[int, int], tuple[float, float], pygame.Vector2]) -> tuple:
+        return self.unproject_x_dist(size[0]), self.unproject_y_dist(size[1])
+
+    def project_rect(self,
+                     rect: Union[tuple[int, int, int, int], tuple[float, float, float, float], tuple[
+                         tuple[int, int], tuple[int, int]], tuple[
+                                     tuple[float, float], tuple[float, float]], pygame.Rect]):
+        if len(rect) == 4 and type(rect) == tuple:
+            return *self.project((rect[0], rect[1])), *self.project_dist((rect[2], rect[3]))
+        elif len(rect) == 2:
+            return self.project(rect[0]), self.project_dist(rect[1])
+        elif type(rect) == pygame.Rect:
+            return pygame.Rect((self.project_x(rect.x), self.project_y(rect.y), self.project_x_dist(rect.width),
+                                self.project_y_dist(rect.height)))
+
+    def unproject_rect(self,
+                       rect: Union[tuple[int, int, int, int], tuple[float, float, float, float], tuple[
+                           tuple[int, int], tuple[int, int]], tuple[
+                                       tuple[float, float], tuple[float, float]], pygame.Rect]):
+        if len(rect) == 4 and type(rect) == tuple:
+            return *self.unproject((rect[0], rect[1])), *self.unproject_dist((rect[2], rect[3]))
+        elif len(rect) == 2:
+            return self.unproject(rect[0]), self.unproject_dist(rect[1])
+        elif type(rect) == pygame.Rect:
+            return pygame.Rect((self.unproject_x(rect.x), self.unproject_y(rect.y), self.unproject_x_dist(rect.width),
+                                self.unproject_y_dist(rect.height)))
+
+    def translate(self, pos: Union[tuple[int, int], tuple[float, float], pygame.Vector2]):
+        self.pos += pos
+
+    def set_scale(self, scale: Union[tuple[int, int], tuple[float, float], pygame.Vector2]):
+        if type(scale) is tuple:
+            self.scale.update(scale)
         else:
-            raise TypeError("Argument must be either int or float")
+            self.scale = scale
+        self.v_size.update(self.sc_size.x / self.scale.x, self.sc_size.y / self.scale.y)
 
-    def set_pos(self, x, y):
-        if utils.all_num_in_list((x, y)):
-            self.x = x
-            self.y = y
+    def _update_scale(self):
+        self.scale.update(self.sc_size.x / self.v_size.x, self.sc_size.y / self.v_size.y)
+
+    def resize_viewport(self, size: Union[tuple[int, int], pygame.Vector2]):
+        if type(size) is tuple:
+            self.v_size.update(size)
         else:
-            raise TypeError("Argument must be either int or float")
+            self.v_size = size
+        self._update_scale()
 
-    def resize_viewport(self, w, h):
-        if utils.all_num_in_list((w, h)):
-            self.v_width, self.v_height = w, h
-            self.update_scale()
+    def resize_screen(self, size: Union[tuple[int, int], pygame.Vector2]):
+        if type(size) is tuple:
+            self.sc_size.update(size)
         else:
-            raise TypeError("Argument must be either int or float")
-
-    def update_scale(self):
-        self.scale = [
-            self.screen_width / self.v_width,
-            self.screen_height / self.v_height,
-        ]
-
-    def resize_window(self, w, h):
-        if utils.all_num_in_list((w, h)):
-            self.screen_width, self.screen_height = w, h
-            self.update_scale()
-        else:
-            raise TypeError("Argument must be either int or float")
-
-    # Take in screen coords and return world coords
-    def unproject(self, x, y):
-        if utils.all_num_in_list((x, y)):
-            return x / self.scale[0] + self.x, y / self.scale[1] + self.y
-        else:
-            raise TypeError("Argument must be either int or float.")
-
-    def flip_x(self):
-        self.scale[0] = self.scale[0] * -1
-
-    def flip_y(self):
-        self.scale[1] = self.scale[1] * -1
-
-    # Take in world coords and return screen coords
-    def project(self, x, y):
-        if utils.all_num_in_list((x, y)):
-            return (x - self.x) * self.scale[0], (y - self.y) * self.scale[1]
-        else:
-            raise TypeError("Argument must be either int or float.")
-
-    # Convert world distance to screen distance (above function but w/o translation)
-    def project_dist(self, x, y):
-        if utils.all_num_in_list((x, y)):
-            return x * abs(self.scale[0]), y * abs(self.scale[1])
-        else:
-            raise TypeError("Argument must be either int or float.")
-
-    # Convert screen distance to world distance (unproject function but w/o translation)
-    def unproject_dist(self, x, y):
-        if utils.all_num_in_list((x, y)):
-            return x / abs(self.scale[0]), y / abs(self.scale[1])
-        else:
-            raise TypeError("Argument must be either int or float.")
-
-    def project_rect(self, rect):
-        if type(rect) == pg.Rect:
-            return pg.Rect(
-                self.project(rect.x, rect.y), self.project_dist(rect.width, rect.height)
-            )
-        elif (
-            type(rect) == tuple
-            and len(rect) == 2
-            and utils.type_all_in_list(rect, tuple)
-            and utils.all_num_in_list(list(rect[0]) + list(rect[1]))
-        ):
-            return self.project(rect[0][0], rect[0][1]), self.project_dist(
-                rect[1][0], rect[1][1]
-            )
-        elif type(rect) == tuple and len(rect) == 4 and utils.all_num_in_list(rect):
-            return *self.project(rect[0], rect[1]), *self.project_dist(rect[2], rect[3])
-        else:
-            raise TypeError("Argument must be rect-style object.")
-
-    def unproject_rect(self, rect):
-        if type(rect) == pg.Rect:
-            return pg.Rect(
-                self.unproject(rect.x, rect.y),
-                self.unproject_dist(rect.width, rect.height),
-            )
-        elif (
-            type(rect) == tuple
-            and len(rect) == 2
-            and utils.type_all_in_list(rect, tuple)
-            and utils.type_all_in_list(rect[0], int)
-            and utils.type_all_in_list(rect[1], int)
-        ):
-            return self.unproject(rect[0][0], rect[0][1]), self.unproject_dist(
-                rect[1][0], rect[1][1]
-            )
-        elif (
-            type(rect) == tuple and len(rect) == 4 and utils.type_all_in_list(rect, int)
-        ):
-            return *self.unproject(rect[0], rect[1]), *self.unproject_dist(
-                rect[2], rect[3]
-            )
-        else:
-            raise TypeError("Argument must be rect-style object.")
-
-    def set_scale(self, scale):
-        self.scale = scale
-        self.v_width = self.screen_width / scale[0]
-        self.v_height = self.screen_width / scale[1]
+            self.sc_size = size
+        self._update_scale()
 
     @property
     def bounds(self):
-        return pg.Vector2(self.x, self.y), pg.Vector2(
-            self.x + self.v_width, self.y + self.v_height
-        )
+        return pygame.Vector2(self.pos.x - self.center.x, self.pos.y - self.center.y), pygame.Vector2(
+            self.pos.x + self.center.x, self.pos.y + self.center.y)
+
+    @property
+    def center(self):
+        return self.v_size/2
