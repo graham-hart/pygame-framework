@@ -1,6 +1,6 @@
 env
 
-src/test.py
+**/test.py
 
 **/__pycache__/
 **/*.pyc

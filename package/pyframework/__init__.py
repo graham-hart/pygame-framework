@@ -1,3 +1,3 @@
-from . import utils, tilemap
+from . import image, tilemap
 from .camera import *
 from .color import *

@@ -19,6 +19,16 @@ class Color:
         print(c)
         return Color(round(c[0] * 255), round(c[1] * 255), round(c[2] * 255))
 
+    @staticmethod
+    def from_hex(h: str):
+        h = h.strip("#")
+        if len(h) == 6:
+            return Color(int(h[:2], 16), int(h[2:4], 16), int(h[4:],16))
+        elif len(h) == 8:
+            return Color(int(h[:2], 16), int(h[2:4], 16), int(h[4:6], 16), int(h[6:]))
+        else:
+            raise ValueError("Hex string must be 7 or 9 characters long (including '#')")
+
     @property
     def as_hex(self):
         return ('#%02x%02x%02x' % (self.r, self.g, self.b)) if self.a == 255 else '#%02x%02x%02x%02x' % (

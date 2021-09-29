@@ -2,14 +2,13 @@ from typing import Union
 
 import pygame
 
-
 class Camera:
     # TODO: 0,0 should be at center
     def __init__(self, screen_size, viewport_size):
-        self.v_size = pygame.Vector2(viewport_size)
-        self.sc_size = pygame.Vector2(screen_size)
-        self.pos = pygame.Vector2(0, 0)
-        self.scale = pygame.Vector2()
+        self.v_size: pygame.Vector2 = pygame.Vector2(viewport_size)
+        self.sc_size: pygame.Vector2 = pygame.Vector2(screen_size)
+        self.pos: pygame.Vector2 = pygame.Vector2(0, 0)
+        self.scale: pygame.Vector2 = pygame.Vector2()
         self._update_scale()
 
     def project_x(self, x: Union[int, float]):
