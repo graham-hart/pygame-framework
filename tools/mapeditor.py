@@ -3,7 +3,7 @@ import sys
 import pygame
 from pygame.locals import *
 
-from package import pyframework as f
+import pyframework
 
 SIDEBAR_WIDTH = 250
 SCREEN_SIZE = SCREEN_WIDTH, SCREEN_HEIGHT = 1000, 1000
