@@ -47,7 +47,7 @@ class TileMap:
         for x in range(int(mn.x), int(mx.x) + 1):
             for y in range(int(mn.y), int(mx.y) + 1):
                 if (x, y) in self.tiles:
-                    tiles[format_map_key((x, y))] = self.get_slice((x, y))
+                    tiles[x, y] = self.get_slice((x, y))
         return tiles
 
     @staticmethod
