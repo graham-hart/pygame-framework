@@ -57,14 +57,15 @@ def draw_sidebar(surf):
         img: pygame.Surface = data[1]["paletteimg"]
         surf.blit(img, data[1]["paletterect"])
         if CONFIG["current_tile"] == data[0]:
-            pygame.draw.rect(surf,COLORS["yellow"].as_hex,data[1]["paletterect"], width=4)
+            pygame.draw.rect(surf, COLORS["yellow"].as_hex, data[1]["paletterect"], width=4)
 
 
 def draw_map(surf: pygame.Surface, cam: Camera, tm: tilemap.TileMap):
+    surf.fill(COLORS["darkblue"].as_hex)
     tiles = tm.get_visible_tiles(cam)
     for coords, layers in tiles.items():
-        for l in layers:
-            pass
+        for l in layers.values():
+            surf.blit(PALETTE[l]["tileimg"], PALETTE[l]["tileimg"].get_rect().move(cam.project(coords)))
 
 
 def main():
@@ -73,9 +74,9 @@ def main():
 
     # ----------------------------------------------------------- Camera setup
     CAM = Camera((MAP_SURF_WIDTH, SCREEN_HEIGHT), (1, 1))
-    CAM.set_scale((10, 10))
+    CAM.set_scale((20, 20))
 
-    TILEMAP = tilemap.TileMap()  # Tilemap setup
+    TILEMAP = tilemap.TileMap({(0,0): {0:"tiles/grass"}})  # Tilemap setup
 
     # ----------------------------------------------------------- Surfaces setup
     SCREEN = pygame.display.set_mode(SCREEN_SIZE)
@@ -94,7 +95,6 @@ def main():
         for event in pygame.event.get():
             handle_event(event)
 
-        MAP_SURF.fill(COLORS["darkblue"].as_hex)
         draw_map(MAP_SURF, CAM, TILEMAP)
         draw_sidebar(SIDEBAR_SURF)
         SCREEN.blit(MAP_SURF, ((SIDEBAR_WIDTH, 0), (MAP_SURF_WIDTH, SCREEN_HEIGHT)))
