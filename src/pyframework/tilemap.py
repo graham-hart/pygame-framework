@@ -7,7 +7,7 @@ import pygame
 
 class TileMap:
     def __init__(self, dct=None):
-        self.tiles = dct if dct else {(0,0): {2: "a"}}
+        self.tiles = dct if dct else {}
 
     def tuplify(self):
         tmp = {}
