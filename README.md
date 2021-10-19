@@ -11,7 +11,7 @@ Feature List
   - Projects world coordinates to pixel coordinates
   - Scaling & Translation
   - Project & Unproject coordinates, distances, and pygame Rects
-  - Graph coordinates - 0,0 center, +y goes up and +self goes right
+  - Graph coordinates - 0,0 center, +y goes up and +x goes right
 - Basic image loading system 
   - Load image from path
   - Load directory of images

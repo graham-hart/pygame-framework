@@ -44,11 +44,16 @@ class TileMap:
     def get_visible_tiles(self, cam):
         mn, mx = cam.bounds
         tiles = {}
-        for x in range(int(mn.x), int(mx.x) + 1):
-            for y in range(int(mn.y), int(mx.y) + 1):
+        for x in range(int(mn.x-1), int(mx.x+1)):
+            for y in range(int(mn.y-1), int(mx.y+1)):
                 if (x, y) in self.tiles:
                     tiles[x, y] = self.get_slice((x, y))
         return tiles
+
+    def has_tile(self, pos: tuple[int,int,int]):
+        if (pos[0],pos[1]) in self.tiles:
+            return pos[2] in self.tiles[pos[0], pos[1]]
+        return False
 
     @staticmethod
     def load_map(fn: str):

@@ -11,3 +11,4 @@ Simple tilemap editor for this pygame framework
         - Pen
         - Selection
         - Shapes (Rectangle, Circle, etc)
+    - Map saving

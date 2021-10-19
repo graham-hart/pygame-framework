@@ -1,3 +1,4 @@
+import math
 import sys
 
 import pygame
@@ -24,7 +25,7 @@ COLORS = {
 
 CONFIG = {
     "current_layer": 0,
-    "current_tile": None,
+    "current_tile": "",
 }
 
 PALETTE = {
@@ -68,20 +69,49 @@ def draw_map(surf: pygame.Surface, cam: Camera, tm: tilemap.TileMap):
             surf.blit(PALETTE[l]["tileimg"], PALETTE[l]["tileimg"].get_rect().move(cam.project(coords)))
 
 
+def edit_map(tm: tilemap.TileMap, cam: Camera):
+    mouse_pos = pygame.mouse.get_pos()
+    if mouse_pos[0] > SIDEBAR_WIDTH:
+        mouse_state = pygame.mouse.get_pressed(3)
+        tmp: tuple[float, float] = cam.unproject((mouse_pos[0] - SIDEBAR_WIDTH, mouse_pos[1]))
+        world_mouse_pos: tuple[int, int, int] = math.floor(tmp[0]), math.floor(tmp[1]), CONFIG["current_layer"]
+        if mouse_state[0] and CONFIG["current_tile"] != "" and world_mouse_pos[0]:
+            tm.set_tile(world_mouse_pos, CONFIG["current_tile"])
+        elif mouse_state[2]:
+            if tm.has_tile(world_mouse_pos):
+                tm.del_tile(world_mouse_pos)
+
+
+def move(cam: Camera, dt):
+    keys = pygame.key.get_pressed()
+    t: list[int] = [0, 0]
+    move_speed = 1 * dt
+    if keys[K_w]:
+        t[1] -= move_speed
+    if keys[K_s]:
+        t[1] += move_speed
+    if keys[K_a]:
+        t[0] -= move_speed
+    if keys[K_d]:
+        t[0] += move_speed
+    cam.translate((t[0], t[1]))
+
+
 def main():
     global PALETTE
     pygame.init()
+
+    # ----------------------------------------------------------- Surfaces setup
+    SCREEN = pygame.display.set_mode(SCREEN_SIZE)
+    pygame.display.set_caption("Map Editor")
+    MAP_SURF = pygame.Surface((MAP_SURF_WIDTH, SCREEN_HEIGHT))
+    SIDEBAR_SURF = pygame.Surface((SIDEBAR_WIDTH, SCREEN_HEIGHT))
 
     # ----------------------------------------------------------- Camera setup
     CAM = Camera((MAP_SURF_WIDTH, SCREEN_HEIGHT), (1, 1))
     CAM.set_scale((20, 20))
 
-    TILEMAP = tilemap.TileMap({(0,0): {0:"tiles/grass"}})  # Tilemap setup
-
-    # ----------------------------------------------------------- Surfaces setup
-    SCREEN = pygame.display.set_mode(SCREEN_SIZE)
-    MAP_SURF = pygame.Surface((MAP_SURF_WIDTH, SCREEN_HEIGHT))
-    SIDEBAR_SURF = pygame.Surface((SIDEBAR_WIDTH, SCREEN_HEIGHT))
+    TILEMAP = tilemap.TileMap()  # Tilemap setup
 
     PALETTE = load_palette("mapeditor-test-imgs/", CAM, 22)
 
@@ -91,12 +121,13 @@ def main():
 
     # ----------------------------------------------------------- Gameloop
     while True:
-        dt = CLOCK.tick()
+        dt = CLOCK.tick() / 60
         for event in pygame.event.get():
             handle_event(event)
-
+        edit_map(TILEMAP, CAM)
         draw_map(MAP_SURF, CAM, TILEMAP)
         draw_sidebar(SIDEBAR_SURF)
+        move(CAM, dt)
         SCREEN.blit(MAP_SURF, ((SIDEBAR_WIDTH, 0), (MAP_SURF_WIDTH, SCREEN_HEIGHT)))
         SCREEN.blit(SIDEBAR_SURF, ((0, 0), (SCREEN_HEIGHT, SCREEN_HEIGHT)))
         pygame.display.flip()
