@@ -3,7 +3,7 @@ from typing import Union
 
 import pygame
 
-from .internals import RectType
+from .ptypes import RectType
 
 
 class Camera:

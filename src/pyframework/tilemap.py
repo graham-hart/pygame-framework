@@ -1,4 +1,5 @@
 import json
+import pickle
 import os
 from typing import Union
 
@@ -19,6 +20,7 @@ class TileMap:
         tmp = {}
         for i, v in self.tiles.items():
             tmp[format_map_key(i)] = v
+        self.tiles = tmp
 
     # Get all layers at x,y
     def get_slice(self, tile_pos: Union[pygame.Vector2, tuple[int, int]]) -> dict[int, str]:
@@ -41,7 +43,7 @@ class TileMap:
         else:
             del self.tiles[tile_pos[0], tile_pos[1]][tile_pos[2]]
 
-    def get_visible_tiles(self, cam):
+    def get_visible_slices(self, cam):
         mn, mx = cam.bounds
         tiles = {}
         for x in range(int(mn.x-1), int(mx.x+1)):
@@ -56,20 +58,29 @@ class TileMap:
         return False
 
     @staticmethod
-    def load_map(fn: str):
-        if os.path.exists(fn):
-            with open(fn, "r+") as file:
-                data = json.loads(file.read())
-                t = TileMap(data)
-                t.tuplify()
-                return t
-        else:
-            raise FileNotFoundError(f"Path '{fn}' not found")
+    def load_json(fn: str):
+        with open(fn, "r+") as file:
+            data = json.loads(file.read())
+            t = TileMap(data)
+            t.tuplify()
+            return t
 
-    def save(self, fn: str):
+    @staticmethod
+    def load_pickle(fn: str):
+        try:
+            with open(fn, "rb+") as file:
+                return pickle.load(file)
+        except EOFError:
+            return TileMap()
+
+    def save_json(self, fn: str):
         self.stringify()
         with open(fn, "w+") as file:
-            file.write((json.dumps(self.tiles)))
+            file.write(json.dumps(self))
+
+    def save_pickle(self, fn: str):
+        with open(fn, "wb+") as file:
+            pickle.dump(self, file)
 
 
 def parse_map_key(key: str):

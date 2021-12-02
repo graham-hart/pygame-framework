@@ -1,2 +1,2 @@
-from . import image, tilemap, color
+from . import image, tilemap, scene, font, utils
 from .camera import *
